@@ -32,6 +32,14 @@ class BlumMicaliGenerator:
             base = (base ** 2) % modulus
         return result
 
+    def _generate_random_bit(self):
+        x_i: int = BlumMicaliGenerator._modular_pow(self.a, self.x_prev, self.p)
+        self.x_prev = x_i
+        if x_i < (self.p - 1) / 2:
+            return "1"
+        else:
+            return "0"
+
     def generate_random_number(self, bit_length: int) -> str:
         """
         Generates random sequence of bits
@@ -42,11 +50,6 @@ class BlumMicaliGenerator:
         bin_number: str = ""
         j: int = 0
         while j < bit_length:
-            x_i: int = BlumMicaliGenerator._modular_pow(self.a, self.x_prev, self.p)
-            if x_i < (self.p - 1) / 2:
-                bin_number += "1"
-            else:
-                bin_number += "0"
-            self.x_prev = x_i
+            bin_number += self._generate_random_bit()
             j += 1
         return bin_number
