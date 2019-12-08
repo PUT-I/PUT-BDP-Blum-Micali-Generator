@@ -1,4 +1,5 @@
 """Contains window application"""
+import json
 import time
 import tkinter as tk
 from datetime import datetime
@@ -71,12 +72,29 @@ class BlumMicaliGeneratorApplication(tk.Frame):
         self.number_text_area.pack(fill='x', expand=True)
 
     @staticmethod
-    def _save_to_file(text: str):
+    def _save_string_to_file(text: str):
         now = datetime.now()
         dt_string: str = now.strftime("%d-%m-%Y-%H-%M-%S")
-        print("date and time =", dt_string)
+        print("date and time = ", dt_string)
         file = open('generated-' + dt_string + '.txt', 'w')
         file.write(text)
+        file.close()
+
+    def _save_params_to_file(self, generation_time: float, bit_ratio: float):
+        base: int = int(self.base_input.get())
+        modulus: int = int(self.modulus_input.get())
+        root: int = int(self.root_input.get())
+
+        now = datetime.now()
+        dt_string: str = now.strftime("%d-%m-%Y-%H-%M-%S")
+        params_string: str = json.dumps({'base': base,
+                                         'modulus': modulus,
+                                         'root': root,
+                                         'generation time': "{0}s".format(generation_time),
+                                         '1 to 0 ration': bit_ratio})
+        print("params = ", params_string)
+        file = open('params-' + dt_string + '.json', 'w')
+        file.write(params_string)
         file.close()
 
     def _generate_key(self):
@@ -97,7 +115,7 @@ class BlumMicaliGeneratorApplication(tk.Frame):
         start = time.time()
         self.random_number = self.generator.generate_random_number(bit_length)
         time_elapsed = round(time.time() - start, 3)
-        binary_ratio: float = round(self.random_number.count("1") / self.random_number.count("0"), 5)
+        bit_ratio: float = round(self.random_number.count("1") / self.random_number.count("0"), 5)
         self.number_text_area.delete('1.0', tk.END)
         if bit_length <= 20000:
             self.number_text_area.insert(tk.END, self.random_number)
@@ -107,9 +125,10 @@ class BlumMicaliGeneratorApplication(tk.Frame):
         self.generation_time_text_area.configure(state='disabled')
         self.ratio_text_area.configure(state='normal')
         self.ratio_text_area.delete('1.0', tk.END)
-        self.ratio_text_area.insert(tk.END, "1 to 0 ratio: {0}".format(binary_ratio))
+        self.ratio_text_area.insert(tk.END, "1 to 0 ratio: {0}".format(bit_ratio))
         self.ratio_text_area.configure(state='disabled')
-        BlumMicaliGeneratorApplication._save_to_file(self.random_number)
+        BlumMicaliGeneratorApplication._save_string_to_file(self.random_number)
+        self._save_params_to_file(time_elapsed, bit_ratio)
 
 
 if __name__ == "__main__":
